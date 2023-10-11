@@ -1,14 +1,15 @@
 #include <DHT.h>
 
-#define DHTPIN 2 // Digital pin where the DHT sensor is connected
+#define DHTPIN 15 // Digital pin where the DHT sensor is connected
 #define DHTTYPE DHT22 // Type of the DHT sensor
 
 DHT dht(DHTPIN, DHTTYPE);
-int relayPin = 4; // Digital pin connected to the relay
-int buttonPin = 5; // Digital pin connected to the push-button switch
+int relayPin = 32; // Digital pin connected to the relay
+int buttonPin = 16; // Digital pin connected to the push-button switch
 int mode = 1; // 1 for auto mode, 0 for manual mode
 
 void setup() {
+  Serial.begin(115200);
   dht.begin();
   pinMode(relayPin, OUTPUT);
   pinMode(buttonPin, INPUT_PULLUP); // Enable internal pull-up resistor for the button
@@ -18,6 +19,18 @@ void loop() {
   float temperature = dht.readTemperature();
   float humidity = dht.readHumidity();
 
+  if (isnan(temperature) || isnan(humidity)){ 
+  Serial.println("Read from DHT Sensor Failed ");
+  return;
+  }
+  Serial.print("\n"); 
+  Serial.print("Temperature : "); 
+  Serial.println(temperature); 
+  
+  Serial.print("Humidity : "); 
+  Serial.println(humidity); 
+  delay(1000);
+  
   // Check if the button is pressed to toggle between auto and manual modes
   if (digitalRead(buttonPin) == LOW) {
     mode = 1 - mode; // Toggle between 0 and 1
@@ -27,10 +40,13 @@ void loop() {
   if (mode == 1) { // Auto mode
     if (temperature > 27 && humidity > 80) {
       digitalWrite(relayPin, LOW); // Turn off the pump
+      Serial.print(" Run Auto ");
     } else {
       digitalWrite(relayPin, HIGH); // Turn on the pump
+      Serial.print(" Mode Auto ");
     }
   } else { // Manual mode
     // Add manual control logic here if needed
+    Serial.print(" Mode Manual");
   }
 }
